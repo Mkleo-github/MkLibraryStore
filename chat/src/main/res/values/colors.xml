@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="colorRed">#FF0000</color>
+    <color name="colorTransparent">#00000000</color><!--透明-->
+    <color name="colorLightGrey">#FAFAFA</color><!--浅灰色-->
+    <color name="colorWhite">#FFFFFFFF</color><!--白色-->
+    <color name="colorGrey">#B5B5B5</color>
+    <color name="colorDarkGrey">#7A7A7A</color><!--深灰-->
+    <color name="colorTransDarkGrey">#AAB6B6B6</color><!--半透明深灰-->
+    <color name="colorSkyBlue">#49B8F9</color><!--天蓝-->
+    <color name="colorOrange">#FFB101</color><!--橘黄-->
+    <color name="colorBlack">#000000</color><!--黑色-->
+    <color name="colorGreen">#34B14A</color>
+    <color name="colorDarkBlue">#3F51B5</color>
+
+    <color name="chatToolbarBac">#f4f4f5</color>
+    <color name="chatInputStroke">#eaeaea</color>
+    <color name="chatBac">#EBEBEB</color><!--聊天背景色-->
+    <color name="chatMicBac">#66000000</color>
+</resources>

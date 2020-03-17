@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MkChat</string>
+
+    <string name="touch_long_record">按住 说话</string>
+    <string name="untouch_record_end">松开 结束</string>
+    <string name="move_hand_cancel_record">松开手指,取消发送</string>
+    <string name="move_up_cancel_record">手指上划,取消发送</string>
+</resources>

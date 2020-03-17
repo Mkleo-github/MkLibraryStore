@@ -1,0 +1,1 @@
+include ':app', ':camera1', ':helper', ':gles', ':media-encoder', ':glcamera', ':downloader', ':chat', ':tcp', ':sles'
