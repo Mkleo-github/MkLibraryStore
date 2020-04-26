@@ -29,7 +29,7 @@ public class Guider implements IGuider<DownloadRequest> {
 
     private void guideFile(final Callback<DownloadRequest> callback) {
         //文件检测
-        new FileGuider(mConfig).guide(new IGuider.Callback<Boolean>() {
+        new FileGuider(mConfig).guide(new Callback<Boolean>() {
             @Override
             public void onError(DownloadError error) {
                 if (null != callback)
@@ -46,7 +46,7 @@ public class Guider implements IGuider<DownloadRequest> {
 
     private void guideHttp(final Callback<DownloadRequest> callback) {
         //检测服务是否支持断点续传
-        new HttpGuider(mConfig).guide(new IGuider.Callback<HttpGuider.Result>() {
+        new HttpGuider(mConfig).guide(new Callback<HttpGuider.Result>() {
 
             @Override
             public void onError(DownloadError error) {

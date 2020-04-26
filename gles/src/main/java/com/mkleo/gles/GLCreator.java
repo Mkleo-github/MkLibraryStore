@@ -7,7 +7,6 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.support.annotation.NonNull;
 
-
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -20,12 +19,12 @@ import java.util.List;
  */
 public class GLCreator {
 
-    public static VboCreator newVbo() {
-        return new VboCreator();
+    public static VBOCreator newVBO() {
+        return new VBOCreator();
     }
 
-    public static FboCreator newFbo(int textureId) {
-        return new FboCreator(textureId);
+    public static FBOCreator newFBO(int textureId) {
+        return new FBOCreator(textureId);
     }
 
     public static TextureCreator newTexture() {
@@ -33,31 +32,35 @@ public class GLCreator {
     }
 
 
-    public static class VboCreator {
+    /**
+     * 顶点缓冲对象
+     */
+    public static class VBOCreator {
 
-        private class VboData {
+        private static class VBOData {
             private float[] data;
             private FloatBuffer dataBuffer;
-            private VboData(float[] data, FloatBuffer dataBuffer) {
+
+            private VBOData(float[] data, FloatBuffer dataBuffer) {
                 this.data = data;
                 this.dataBuffer = dataBuffer;
             }
         }
 
-        private List<VboData> mVboDatas;
+        private List<VBOData> mVBODatas;
 
-        private VboCreator() {
-            mVboDatas = new ArrayList<>();
+        private VBOCreator() {
+            mVBODatas = new ArrayList<>();
         }
 
-        public VboCreator add(@NonNull float[] data, @NonNull FloatBuffer dataBuffer) {
-            mVboDatas.add(new VboData(data, dataBuffer));
+        public VBOCreator add(@NonNull float[] data, @NonNull FloatBuffer dataBuffer) {
+            mVBODatas.add(new VBOData(data, dataBuffer));
             return this;
         }
 
         public int create() {
             //无法创建
-            if (mVboDatas.size() == 0) return -1;
+            if (mVBODatas.size() == 0) return -1;
             //OpenGL vbo指针
             int glVbo;
             int[] vbos = new int[1];
@@ -69,7 +72,7 @@ public class GLCreator {
             //分配缓存大小
             //获取所有点数据个数
             int positions = 0;
-            for (VboData vboData : mVboDatas) {
+            for (VBOData vboData : mVBODatas) {
                 positions += vboData.data.length;
             }
             GLES20.glBufferData(
@@ -82,7 +85,7 @@ public class GLCreator {
             );
             //为顶点缓冲设置数据
             int offset = 0;
-            for (VboData vboData : mVboDatas) {
+            for (VBOData vboData : mVBODatas) {
                 GLES20.glBufferSubData(
                         GLES20.GL_ARRAY_BUFFER,
                         //偏移值
@@ -101,11 +104,14 @@ public class GLCreator {
     }
 
 
-    public static class FboCreator {
+    /**
+     * 帧缓冲对象
+     */
+    public static class FBOCreator {
 
         private int mTextureId;
 
-        private FboCreator(int textureId) {
+        private FBOCreator(int textureId) {
             this.mTextureId = textureId;
         }
 
@@ -157,6 +163,9 @@ public class GLCreator {
 
     }
 
+    /**
+     * 纹理创建
+     */
     public static class TextureCreator {
         private TextureCreator() {
         }
@@ -173,6 +182,12 @@ public class GLCreator {
         }
 
 
+        /**
+         * 创建bitmap贴图纹理
+         *
+         * @param bitmap
+         * @return
+         */
         public int create(Bitmap bitmap) {
             if (null == bitmap) throw new GLException("Bitmap为Null!");
             int[] textureIds = new int[1];
@@ -223,6 +238,11 @@ public class GLCreator {
         }
 
 
+        /**
+         * 创建OES纹理
+         *
+         * @return
+         */
         public int createOes() {
             int[] textureIds = new int[1];
             GLES20.glGenTextures(1, textureIds, 0);

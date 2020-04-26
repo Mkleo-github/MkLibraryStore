@@ -89,7 +89,7 @@ public class GLPreviewRender implements GLRender {
         //获取2D纹理
         mGL2DTexture = GLES20.glGetUniformLocation(mGLProgram, "texture");
 
-        mGLVbo = GLCreator.newVbo()
+        mGLVbo = GLCreator.newVBO()
                 .add(mVertexCoord, mVertexBuffer)
                 .add(mTextureCoord, mTextureBuffer)
                 .create();
@@ -107,7 +107,6 @@ public class GLPreviewRender implements GLRender {
         GLES20.glViewport(0, 0, mWidth, mHeight);
         //清屏
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        GLES20.glClearColor(0f, 1f, 0f, 1f);
 
         GLES20.glUseProgram(mGLProgram);
 

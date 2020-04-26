@@ -18,7 +18,7 @@ public class Config {
     /* 图片宽度 */
     private int pictureWidth;
     /* 图片高度 */
-    private  int pictureHeight;
+    private int pictureHeight;
     /* 图片格式 */
     private int pictureFormat;
     /* 视频宽度 */
@@ -38,7 +38,7 @@ public class Config {
     /* 视频编码 */
     private int videoEncode;
     /* 视频比特率 */
-    private  int videoBitRate;
+    private int videoBitRate;
 
     private Config(Builder builder) {
         this.cameraId = builder.cameraId;
@@ -138,21 +138,21 @@ public class Config {
         private Object cameraId = 0;
         private int previewWidth = 720;
         private int previewHeight = 1280;
-//        private int previewFps = 15;
+        //        private int previewFps = 15;
         private int focusMode = Params.FocusMode.AUTO;
         private int flashMode = Params.FlashMode.OFF;
-        private int pictureWidth = 720;
-        private int pictureHeight = 1280;
+        private int pictureWidth = previewWidth;
+        private int pictureHeight = previewHeight;
         private int pictureFormat = Params.PictureFormat.JPEG;
-        private int videoWidth = 720;
-        private int videoHeight = 1280;
-        private int videoFps = 15;
+        private int videoWidth = previewWidth;
+        private int videoHeight = previewHeight;
+        private int videoFps = 10;
         private int audioSource = Params.AudioSource.MIC;
         private int videoSource = Params.VideoSource.CAMERA;
         private int outputFormat = Params.OutputFormat.MP4;
         private int audioEncode = Params.AudioEncode.ACC;
         private int videoEncode = Params.VideoEncode.H264;
-        private int videoBitRate = videoWidth * videoHeight * 4;
+        private int videoBitRate = videoWidth * videoHeight;
 
         public Builder setCameraId(int cameraId) {
             this.cameraId = cameraId;

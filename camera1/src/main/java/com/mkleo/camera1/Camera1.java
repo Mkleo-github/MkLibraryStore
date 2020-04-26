@@ -49,7 +49,7 @@ public class Camera1 implements ICamera {
 
     @Override
     public void setCallback(Callback callback) {
-        mState.setCallback(callback);
+        mApi.setCallback(callback);
     }
 
     @Override
@@ -78,21 +78,25 @@ public class Camera1 implements ICamera {
     }
 
     @Override
-    public boolean takePicture(String path, PictureCallback callback) {
-        if (isLegalPath(path)) return false;
-        if (mState == mPreview) {
+    public synchronized boolean takePicture(String path, PictureCallback callback) {
+        //只有路径合法并且状态在预览
+        if (isPathLegal(path) && mState == mPreview) {
             mState = mTakePicture;
+            return mState.takePicture(path, callback);
+        } else {
+            return false;
         }
-        return mState.takePicture(path, callback);
     }
 
     @Override
     public boolean startRecord(String path, VideoCallback callback) {
-        if (isLegalPath(path)) return false;
-        if (mState == mPreview) {
+        //只有路径合法并且状态在预览
+        if (isPathLegal(path) && mState == mPreview) {
             mState = mVideoRecord;
+            return mState.startRecord(path, callback);
+        } else {
+            return false;
         }
-        return mState.startRecord(path, callback);
     }
 
     @Override
@@ -127,12 +131,12 @@ public class Camera1 implements ICamera {
 
 
     /**
-     * 是否是合法的路径
+     * 路径是否合法
      *
      * @param path
      * @return
      */
-    private boolean isLegalPath(String path) {
-        return null == new File(path).getParentFile();
+    private boolean isPathLegal(String path) {
+        return null != new File(path).getParentFile();
     }
 }

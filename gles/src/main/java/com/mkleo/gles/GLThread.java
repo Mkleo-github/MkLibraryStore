@@ -4,7 +4,6 @@ import android.opengl.EGLContext;
 import android.support.annotation.IntDef;
 import android.view.Surface;
 
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.concurrent.ArrayBlockingQueue;

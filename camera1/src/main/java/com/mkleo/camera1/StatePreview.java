@@ -45,12 +45,12 @@ class StatePreview extends CameraState {
     }
 
     @Override
-    public boolean takePicture(String path, ICamera.PictureCallback callback) {
+    public boolean takePicture(String path, PictureCallback callback) {
         return false;
     }
 
     @Override
-    public boolean startRecord(String path, ICamera.VideoCallback callback) {
+    public boolean startRecord(String path, VideoCallback callback) {
         return false;
     }
 

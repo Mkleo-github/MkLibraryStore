@@ -1,5 +1,7 @@
 package com.mkleo.camera1;
 
+import android.support.annotation.NonNull;
+
 /**
  * 相机的抽象
  */
@@ -9,7 +11,7 @@ public interface ICamera {
         /**
          * 开始预览
          */
-        void onStartPreview();
+        void onStartPreview(Size previewSize);
 
         /**
          * 停止预览
@@ -191,6 +193,12 @@ public interface ICamera {
 
         public int getWidth() {
             return width;
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return "[width:" + width + "] [height:" + height + "]";
         }
     }
 }

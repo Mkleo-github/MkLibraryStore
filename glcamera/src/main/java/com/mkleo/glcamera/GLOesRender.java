@@ -95,14 +95,14 @@ public class GLOesRender implements GLRender, SurfaceTexture.OnFrameAvailableLis
         mGLTransMatrix = GLES20.glGetUniformLocation(mGLProgram, "transMatrix");
 
         //创建VBO
-        mGLVbo = GLCreator.newVbo()
+        mGLVbo = GLCreator.newVBO()
                 .add(mVertexCoord, mVertexBuffer)
                 .add(mTextureCoord, mTextureBuffer)
                 .create();
         //创建FBO纹理
         mGLFboTextureId = GLCreator.newTexture().create();
         //创建FBO
-        mGLFbo = GLCreator.newFbo(mGLFboTextureId)
+        mGLFbo = GLCreator.newFBO(mGLFboTextureId)
                 .create(mWidth, mHeight);
         //创建Oes纹理
         mGLOesTextureId = GLCreator.newTexture().createOes();
@@ -128,7 +128,6 @@ public class GLOesRender implements GLRender, SurfaceTexture.OnFrameAvailableLis
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mGLFbo);
         //清屏
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        GLES20.glClearColor(1f, 0f, 0f, 1f);
         //激活程序
         GLES20.glUseProgram(mGLProgram);
         //激活变换矩阵

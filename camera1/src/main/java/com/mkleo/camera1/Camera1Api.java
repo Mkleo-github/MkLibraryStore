@@ -21,6 +21,7 @@ import com.mkleo.helper.SystemUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -90,10 +91,16 @@ class Camera1Api implements ICamera {
                     }
                     mCamera.startPreview();
                     log("开始预览");
-                    if (null != mCallback)
-                        mCallback.onStartPreview();
-                } catch (IOException e) {
-                    throw new RuntimeException(e.toString());
+                    if (null != mCallback) {
+                        Camera.Size previewSize = mParameters.getPreviewSize();
+                        boolean isSetupVertical = Camera1Util.isCameraSetupVertical(mCameraId);
+                        mCallback.onStartPreview(
+                                new Size(
+                                        isSetupVertical ? previewSize.width : previewSize.height,
+                                        isSetupVertical ? previewSize.height : previewSize.width
+                                ));
+                    }
+                } catch (IOException ignored) {
                 }
             }
         });
@@ -105,20 +112,10 @@ class Camera1Api implements ICamera {
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    log("停止预览");
-                    if (null != mCamera) {
-                        mZoomLevel = 0;
-                        mCamera.stopPreview();
-                        mCamera.setPreviewDisplay(null);
-                        mCamera.release();
-                        mCamera = null;
-                    }
-                    if (null != mCallback)
-                        mCallback.onStopPreview();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                log("停止预览");
+                close();
+                if (null != mCallback)
+                    mCallback.onStopPreview();
             }
         });
     }
@@ -126,6 +123,7 @@ class Camera1Api implements ICamera {
     @Override
     public void requestFocus(final float scaleX, final float scaleY) {
         if (isUnavailable()) return;
+        log("请求对焦 [x:" + scaleX + "] [y:" + scaleX + "]");
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
@@ -135,6 +133,7 @@ class Camera1Api implements ICamera {
                     mCamera.autoFocus(new Camera.AutoFocusCallback() {
                         @Override
                         public void onAutoFocus(boolean success, Camera camera) {
+                            log("对焦完成 [" + success + "]");
                         }
                     });
                 } else {
@@ -168,9 +167,10 @@ class Camera1Api implements ICamera {
                                 //恢复对焦模式
                                 mParameters.setFocusMode(setFocusMode);
                                 mCamera.setParameters(mParameters);
+                                log("对焦完成 [" + success + "]");
                             }
                         });
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
                 }
             }
@@ -203,7 +203,7 @@ class Camera1Api implements ICamera {
     @Override
     public boolean takePicture(final String path, final PictureCallback callback) {
         if (isUnavailable()) return false;
-        log("拍照");
+        log("拍照 [" + path + "]");
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
@@ -253,7 +253,7 @@ class Camera1Api implements ICamera {
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
-                log("开始录制");
+                log("开始录制 [" + path + "]");
                 mVideoPath = path;
                 mVideoCallback = callback;
 
@@ -273,16 +273,22 @@ class Camera1Api implements ICamera {
                 mMediaRecorder.setAudioEncoder(mConfig.getAudioEncode());
                 //设置视频的编码格式
                 mMediaRecorder.setVideoEncoder(mConfig.getVideoEncode());
-                //设置视频编码的比特率
-                mMediaRecorder.setVideoEncodingBitRate(mConfig.getVideoBitRate());
-
-                Camera.Size videoSize = Camera1Util.getNearSize(false, mParameters.getSupportedVideoSizes(),
-                        mConfig.getVideoWidth(), mConfig.getVideoHeight());
-                //设置视频大小
-                mMediaRecorder.setVideoSize(videoSize.width, videoSize.height);
-                //设置帧率
-                mMediaRecorder.setVideoFrameRate(mConfig.getVideoFps());
-
+                if (mConfig.getVideoBitRate() > 0) {
+                    //设置视频编码的比特率
+                    mMediaRecorder.setVideoEncodingBitRate(mConfig.getVideoBitRate());
+                }
+                if (mConfig.getVideoWidth() > 0 && mConfig.getVideoHeight() > 0) {
+                    Camera.Size videoSize = Camera1Util.getNearSize(
+                            mParameters.getSupportedVideoSizes(),
+                            mConfig.getVideoWidth(), mConfig.getVideoHeight()
+                    );
+                    //设置视频大小
+                    mMediaRecorder.setVideoSize(videoSize.width, videoSize.height);
+                }
+                if (mConfig.getVideoFps() > 0) {
+                    //设置帧率
+                    mMediaRecorder.setVideoFrameRate(mConfig.getVideoFps());
+                }
                 if (mSurface instanceof SurfaceHolder) {
                     mMediaRecorder.setPreviewDisplay(((SurfaceHolder) mSurface).getSurface());
                 } else if (mSurface instanceof SurfaceTexture) {
@@ -314,20 +320,20 @@ class Camera1Api implements ICamera {
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
-                log("停止录制");
+                log("停止录制 [" + mVideoPath + "]");
                 if (null != mMediaRecorder) {
-                    //不设置为Null会导致RuntimeExecotion
-                    mMediaRecorder.setOnErrorListener(null);
-                    mMediaRecorder.setOnInfoListener(null);
-                    mMediaRecorder.setPreviewDisplay(null);
                     //回收
                     try {
+                        //不设置为Null会导致RuntimeExecotion
+                        mMediaRecorder.setOnErrorListener(null);
+                        mMediaRecorder.setOnInfoListener(null);
+                        mMediaRecorder.setPreviewDisplay(null);
                         mMediaRecorder.stop();
                         mMediaRecorder.reset();
                         mMediaRecorder.release();
-                        mMediaRecorder = null;
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
+                    mMediaRecorder = null;
                     //通知系统更新媒体文件
                     SystemUtil.notifySystemUpdateMedia(mContext, mVideoPath);
                     mScheduler.mainThread(new Runnable() {
@@ -366,7 +372,7 @@ class Camera1Api implements ICamera {
                 }
                 mParameters.setZoom(mZoomLevel);
                 mCamera.setParameters(mParameters);
-                log("缩放:" + mZoomLevel);
+                log("缩放 [" + mZoomLevel + "]");
             }
         });
         return true;
@@ -379,7 +385,6 @@ class Camera1Api implements ICamera {
 
     @Override
     public Infos getCameraInfos() {
-        if (isUnavailable()) return new Infos(-1, Params.Facing.BACK, -1);
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(mCameraId, info);
         return new Infos(mCameraId, info.facing, info.orientation);
@@ -420,6 +425,9 @@ class Camera1Api implements ICamera {
                 || surface instanceof SurfaceTexture;
     }
 
+    /**
+     * 准备工作
+     */
     private void prepare() {
         //初始化线程调度器
         mScheduler = new HandlerScheduler(getClass().getSimpleName());
@@ -434,44 +442,72 @@ class Camera1Api implements ICamera {
     }
 
 
+    /**
+     * 打开相机
+     */
     private void open() {
         //检测是否支持相机设备
         if (!Camera1Util.isSupportCamera())
-            throw new RuntimeException("Not detected camera!");
+            throw new RuntimeException("该设备不支持相机!");
         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED)
-            throw new RuntimeException("No camera permission");
+            throw new RuntimeException("请赋予相机权限!");
         //打开摄像头
         mCamera = Camera.open(mCameraId);
         int previewAngle = Camera1Util.getPreviewAngle(mContext, mCameraId);
+        log("设置预览角度 [" + previewAngle + "]");
         mCamera.setDisplayOrientation(previewAngle);
-        if (null == mParameters) {
-            mParameters = mCamera.getParameters();
-            //设置预览大小
-            Camera.Size previewSize = Camera1Util.getNearSize(false, mParameters.getSupportedPreviewSizes(),
-                    mConfig.getPreviewWidth(), mConfig.getPreviewHeight());
+        mParameters = mCamera.getParameters();
+        //设置预览大小
+        if (mConfig.getPreviewWidth() > 0 && mConfig.getPreviewHeight() > 0) {
+            Camera.Size previewSize = Camera1Util.getNearSize(
+                    mParameters.getSupportedPreviewSizes(),
+                    mConfig.getPreviewWidth(), mConfig.getPreviewHeight()
+            );
+            log("配置的预览大小 [w:" + mConfig.getPreviewWidth() + "] [h:" + mConfig.getPreviewHeight() + "]");
+            log("设置的预览大小 [w:" + previewSize.width + "] [h:" + previewSize.height + "]");
             mParameters.setPreviewSize(previewSize.width, previewSize.height);
-            //只有第一次打开才会设置
-            //设置对焦模式
-            if (isSupportFocusMode(mConfig.getFocusMode())) {
-                mParameters.setFocusMode(
-                        Camera1Util.getFocusMode(mConfig.getFocusMode())
-                );
-            }
-            //设置闪光灯模式
-            if (isSupportFlashMode(mConfig.getFlashMode())) {
-                mParameters.setFlashMode(
-                        Camera1Util.getFlashMode(mConfig.getFlashMode())
-                );
-            }
-            //设置图片格式
-            mParameters.setPictureFormat(mConfig.getPictureFormat());
+        }
+        //只有第一次打开才会设置
+        //设置对焦模式
+        if (isSupportFocusMode(mConfig.getFocusMode())) {
+            mParameters.setFocusMode(
+                    Camera1Util.getFocusMode(mConfig.getFocusMode())
+            );
+        }
+        //设置闪光灯模式
+        if (isSupportFlashMode(mConfig.getFlashMode())) {
+            mParameters.setFlashMode(
+                    Camera1Util.getFlashMode(mConfig.getFlashMode())
+            );
+        }
+        //设置图片格式
+        mParameters.setPictureFormat(mConfig.getPictureFormat());
+        if (mConfig.getPictureWidth() > 0 && mConfig.getPreviewHeight() > 0) {
             //设置输出图片大小
-            Camera.Size pictureSize = Camera1Util.getNearSize(false, mParameters.getSupportedPictureSizes(),
-                    mConfig.getPictureWidth(), mConfig.getPictureHeight());
+            Camera.Size pictureSize = Camera1Util.getNearSize(
+                    mParameters.getSupportedPictureSizes(),
+                    mConfig.getPictureWidth(), mConfig.getPictureHeight()
+            );
             mParameters.setPictureSize(pictureSize.width, pictureSize.height);
         }
         //设置参数
         mCamera.setParameters(mParameters);
+    }
+
+    /**
+     * 关闭相机
+     */
+    private void close() {
+        try {
+            if (null != mCamera) {
+                log("关闭相机");
+                mZoomLevel = 0;
+                mCamera.stopPreview();
+                mCamera.setPreviewDisplay(null);
+                mCamera.release();
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     /**
@@ -541,6 +577,6 @@ class Camera1Api implements ICamera {
     }
 
     private void log(String log) {
-        MkLog.print("[Camera1]:" + log);
+        Camera1Util.log(log);
     }
 }

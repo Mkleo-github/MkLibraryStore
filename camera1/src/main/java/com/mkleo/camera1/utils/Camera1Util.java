@@ -4,10 +4,12 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
 import com.mkleo.camera1.Params;
+import com.mkleo.helper.MkLog;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -168,7 +170,6 @@ public class Camera1Util {
         int setupAngle = info.orientation;
         //获取当前设备角度
         int deviceRotation = getDeviceRotation(angle);
-
         int pictureAngle = 0;
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
             pictureAngle = (setupAngle - deviceRotation + 360) % 360;
@@ -186,16 +187,12 @@ public class Camera1Util {
      * @return
      */
     public static int getNextCamera(int cameraId) {
+        //相机个数
         int cameraNumber = Camera.getNumberOfCameras();
-        List<Integer> cameraIds = new ArrayList<>();
-        for (int i = 0; i < cameraNumber; i++) {
-            cameraIds.add(i);
-        }
-        if (cameraIds.size() <= cameraId + 1) {
-            //说明是最后一个
-            return cameraIds.get(0);
+        if (cameraId < cameraNumber - 1) {
+            return cameraId + 1;
         } else {
-            return cameraIds.get(cameraId + 1);
+            return 0;
         }
     }
 
@@ -238,29 +235,19 @@ public class Camera1Util {
     /**
      * 获取最接近的size
      *
-     * @param isHorizontal 是否横屏
      * @param sizes
      * @param width
      * @param height
      * @return
      */
-    public static Camera.Size getNearSize(boolean isHorizontal, List<Camera.Size> sizes, int width, int height) {
+    public static Camera.Size getNearSize(List<Camera.Size> sizes, int width, int height) {
         //将Size降序排列
         sortSize(false, sizes);
         Camera.Size nearSize = null;
         for (Camera.Size size : sizes) {
-            if (isHorizontal) {
-                //因为是降序,只需要第一个符合的就可以
-                if (size.width <= width && size.height <= height) {
-                    nearSize = size;
-                    break;
-                }
-            } else {
-                //如果是竖屏,传入的宽高和camera成像宽高相反
-                if (size.height <= width && size.width <= height) {
-                    nearSize = size;
-                    break;
-                }
+            if (size.height <= width && size.width <= height) {
+                nearSize = size;
+                break;
             }
         }
         if (null == nearSize) {
@@ -268,6 +255,29 @@ public class Camera1Util {
             nearSize = sizes.get(sizes.size() - 1);
         }
         return nearSize;
+    }
+
+    /**
+     * 相机装备是否是竖向
+     *
+     * @param cameraId
+     * @return
+     */
+    public static boolean isCameraSetupVertical(int cameraId) {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int orientation = info.orientation;
+        log("摄像头[" + cameraId + "] 装配角度 [" + orientation + "]");
+        switch (orientation) {
+            case Params.Angle.ANGLE_0:
+            case Params.Angle.ANGLE_180:
+                return true;
+            case Params.Angle.ANGLE_90:
+            case Params.Angle.ANGLE_270:
+                return false;
+            default:
+                return true;
+        }
     }
 
 
@@ -314,6 +324,18 @@ public class Camera1Util {
             default:
                 return Camera.Parameters.FLASH_MODE_OFF;
         }
+    }
+
+    public static void logSizes(List<Camera.Size> sizes) {
+        log("[logSize]");
+        for (Camera.Size size : sizes) {
+            log("[w:" + size.width + "] [h:" + size.height + "]");
+        }
+    }
+
+
+    public static void log(String log) {
+        MkLog.print("[Camera1]:" + log);
     }
 
 }
