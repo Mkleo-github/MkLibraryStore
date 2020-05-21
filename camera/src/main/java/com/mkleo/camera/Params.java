@@ -1,4 +1,4 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
 
 import android.graphics.ImageFormat;
 import android.media.MediaRecorder;
@@ -8,6 +8,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 public @interface Params {
+    /**
+     * 版本
+     */
+    @IntDef({Version.CAMERA_1, Version.CAMERA_2})
+    @Retention(RetentionPolicy.SOURCE)
+    @interface Version {
+        int CAMERA_1 = 1;
+        int CAMERA_2 = 2;
+    }
 
     /**
      * 对焦模式
@@ -185,6 +194,5 @@ public @interface Params {
         /* 一种新的视频压缩标准。可以替代H.264/ AVC编码标准。它将在H.264标准2至4倍的复杂度基础上，将压缩效率提升一倍以上。 */
         int HEVC = MediaRecorder.VideoEncoder.HEVC;
     }
-
 
 }

@@ -1,17 +1,15 @@
-package com.mkleo.camera1.utils;
+package com.mkleo.camera.api1;
 
 import android.content.Context;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import com.mkleo.camera1.Params;
+import com.mkleo.camera.Params;
 import com.mkleo.helper.MkLog;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -122,7 +120,6 @@ public class Camera1Util {
                 Math.min(areaY + 100, 1000)
         );
         return new Camera.Area(rect, 1000);
-
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
 
 class StateTakePicture extends CameraState {
 
@@ -17,6 +17,11 @@ class StateTakePicture extends CameraState {
     @Override
     public void startPreview(Object surface) {
         //拍照状态无法调用
+    }
+
+    @Override
+    public Object getSurface() {
+        return mApi.getSurface();
     }
 
     @Override

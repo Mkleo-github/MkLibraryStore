@@ -7,9 +7,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.mkleo.camera1.Camera1;
-import com.mkleo.camera1.Config;
-import com.mkleo.camera1.ICamera;
+import com.mkleo.camera.Camera;
+import com.mkleo.camera.Config;
+import com.mkleo.camera.ICamera;
 import com.mkleo.helper.MkLog;
 import com.mkleo.librarys.MkApplication;
 import com.mkleo.librarys.R;
@@ -20,7 +20,7 @@ import java.util.Date;
 public class Camera1Activity extends Activity {
 
     private SurfaceView mPreview;
-    private Camera1 mCamera1;
+    private Camera mCamera1;
     private boolean isRecording = false;
 
     @Override
@@ -29,7 +29,7 @@ public class Camera1Activity extends Activity {
         setContentView(R.layout.activity_camera1);
         mPreview = findViewById(R.id.preview);
 
-        mCamera1 = new Camera1(this, new Config.Builder().build());
+        mCamera1 = new Camera(this, new Config.Builder().build());
 
         mPreview.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override

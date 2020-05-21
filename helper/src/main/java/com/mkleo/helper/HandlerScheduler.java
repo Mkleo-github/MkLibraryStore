@@ -1,10 +1,13 @@
-package com.mkleo.camera1.utils;
+package com.mkleo.helper;
 
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
+/**
+ * 线程调度器
+ */
 public class HandlerScheduler {
 
 
@@ -15,10 +18,11 @@ public class HandlerScheduler {
 
     public HandlerScheduler(String name) {
         this.mName = name;
+        prepare();
     }
 
 
-    public void prepare() {
+    private void prepare() {
         mIoThread = new HandlerThread(mName);
         mIoThread.start();
         mIoHandler = new Handler(mIoThread.getLooper());

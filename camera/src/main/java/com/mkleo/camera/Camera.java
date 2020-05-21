@@ -1,51 +1,33 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
 
 import android.content.Context;
 
+import com.mkleo.camera.api1.Camera1Api;
+import com.mkleo.camera.api2.Camera2Api;
+
 import java.io.File;
 
-public class Camera1 implements ICamera {
+public class Camera implements ICamera {
 
-    private Camera1Api mApi;
+    private BaseCameraApi mApi;
     private CameraState mState;
     private CameraState mPreview;
     private CameraState mTakePicture;
     private CameraState mVideoRecord;
 
-
-    public Camera1(Context context, Config config) {
-        mApi = new Camera1Api(context.getApplicationContext(), config);
-        mPreview = new StatePreview(mApi);
-        mTakePicture = new StateTakePicture(mApi) {
-            @Override
-            protected void onPictureTaken() {
-                //图片生成后,状态设置为预览,并重新开启预览
-                mState = mPreview;
-                rePreview();
-            }
-        };
-        mVideoRecord = new StateVideoRecord(mApi) {
-            @Override
-            protected void onStopRecord(boolean isRepreview) {
-                //视频生成后,状态设置为预览
-                mState = mPreview;
-                if (isRepreview) {
-                    rePreview();
-                }
-            }
-        };
-        //状态设置为预览
-        mState = mPreview;
+    public Camera(Context context, Config config) {
+        switch (config.getVersion()) {
+            case Params.Version.CAMERA_1:
+                mApi = new Camera1Api(context.getApplicationContext(), config);
+                break;
+            case Params.Version.CAMERA_2:
+                mApi = new Camera2Api(context.getApplicationContext(), config);
+                break;
+            default:
+                throw new RuntimeException("[不支持的Api版本]:" + config.getVersion());
+        }
+        initStateMachine();
     }
-
-    /**
-     * 重新预览
-     */
-    private void rePreview() {
-        mPreview.stopPreview();
-        mPreview.startPreview(mApi.getSurface());
-    }
-
 
     @Override
     public void setCallback(Callback callback) {
@@ -55,6 +37,11 @@ public class Camera1 implements ICamera {
     @Override
     public void startPreview(Object surface) {
         mState.startPreview(surface);
+    }
+
+    @Override
+    public Object getSurface() {
+        return mState.getSurface();
     }
 
     @Override
@@ -129,6 +116,40 @@ public class Camera1 implements ICamera {
         mState.release();
     }
 
+    /**
+     * 初始化状态机
+     */
+    private void initStateMachine() {
+        mPreview = new StatePreview(mApi);
+        mTakePicture = new StateTakePicture(mApi) {
+            @Override
+            protected void onPictureTaken() {
+                //图片生成后,状态设置为预览,并重新开启预览
+                mState = mPreview;
+                repreview();
+            }
+        };
+        mVideoRecord = new StateVideoRecord(mApi) {
+            @Override
+            protected void onStopRecord(boolean isRepreview) {
+                //视频生成后,状态设置为预览
+                mState = mPreview;
+                if (isRepreview) {
+                    repreview();
+                }
+            }
+        };
+        //状态设置为预览
+        mState = mPreview;
+    }
+
+    /**
+     * 重新预览
+     */
+    private void repreview() {
+        mPreview.stopPreview();
+        mPreview.startPreview(mApi.getSurface());
+    }
 
     /**
      * 路径是否合法

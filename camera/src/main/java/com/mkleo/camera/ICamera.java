@@ -1,4 +1,4 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
 
 import android.support.annotation.NonNull;
 
@@ -60,6 +60,13 @@ public interface ICamera {
      * @param surface (SurfaceHolder/SurfaceTexture)
      */
     void startPreview(Object surface);
+
+    /**
+     * 获取当前纹理
+     *
+     * @return
+     */
+    Object getSurface();
 
     /**
      * 停止预览

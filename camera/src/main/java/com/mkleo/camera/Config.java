@@ -1,8 +1,10 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
+
+import android.os.Build;
 
 public class Config {
 
-
+    private int version;
     /* 相机ID */
     private Object cameraId;
     /* 预览宽度 */
@@ -59,6 +61,11 @@ public class Config {
         this.audioEncode = builder.audioEncode;
         this.videoEncode = builder.videoEncode;
         this.videoBitRate = builder.videoBitRate;
+        this.version = builder.version;
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     public Object getCameraId() {
@@ -135,6 +142,8 @@ public class Config {
 
     public static class Builder {
 
+        //默认使用Camera1
+        private int version = Params.Version.CAMERA_1;
         private Object cameraId = 0;
         private int previewWidth = 720;
         private int previewHeight = 1280;
@@ -153,6 +162,15 @@ public class Config {
         private int audioEncode = Params.AudioEncode.ACC;
         private int videoEncode = Params.VideoEncode.H264;
         private int videoBitRate = videoWidth * videoHeight;
+
+        public Builder setVersion(@Params.Version int version) {
+            if (version == Params.Version.CAMERA_2
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                //必须版本大于5.0
+                this.version = version;
+            }
+            return this;
+        }
 
         public Builder setCameraId(int cameraId) {
             this.cameraId = cameraId;

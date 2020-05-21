@@ -7,10 +7,10 @@ import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.mkleo.camera1.Camera1;
-import com.mkleo.camera1.Config;
-import com.mkleo.camera1.ICamera;
-import com.mkleo.camera1.Params;
+import com.mkleo.camera.Camera;
+import com.mkleo.camera.Config;
+import com.mkleo.camera.ICamera;
+import com.mkleo.camera.Params;
 import com.mkleo.gles.GLOffscreen;
 import com.mkleo.gles.GLSurfaceView;
 import com.mkleo.helper.MkLog;
@@ -26,7 +26,7 @@ import java.util.List;
 public abstract class GLCameraBaseView extends GLSurfaceView {
 
     /* 相机API */
-    private Camera1 mCamera1;
+    private Camera mCamera1;
     /* 用于显示的Render */
     private GLPreviewRender mGLPreviewRender;
     /* GL的离屏线程 */
@@ -80,7 +80,7 @@ public abstract class GLCameraBaseView extends GLSurfaceView {
                 .setPictureWidth(mWidth)
                 .setPictureHeight(mHeight)
                 .build();
-        mCamera1 = new Camera1(getContext(), config);
+        mCamera1 = new Camera(getContext(), config);
         mCamera1.setCallback(new ICamera.Callback() {
             @Override
             public void onStartPreview(ICamera.Size previewSize) {

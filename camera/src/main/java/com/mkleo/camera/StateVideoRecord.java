@@ -1,5 +1,4 @@
-package com.mkleo.camera1;
-
+package com.mkleo.camera;
 
 class StateVideoRecord extends CameraState {
 
@@ -20,6 +19,11 @@ class StateVideoRecord extends CameraState {
     @Override
     public void startPreview(Object surface) {
         //视频录制不可调用
+    }
+
+    @Override
+    public Object getSurface() {
+        return mApi.getSurface();
     }
 
     @Override

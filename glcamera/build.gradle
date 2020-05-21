@@ -30,7 +30,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 
     implementation project(path: ':helper')
-    implementation project(path: ':camera1')
+    implementation project(path: ':camera')
     implementation project(path: ':gles')
     implementation project(path: ':media-encoder')
 }

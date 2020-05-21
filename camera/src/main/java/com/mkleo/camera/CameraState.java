@@ -1,4 +1,4 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
 
 
 abstract class CameraState implements ICamera {

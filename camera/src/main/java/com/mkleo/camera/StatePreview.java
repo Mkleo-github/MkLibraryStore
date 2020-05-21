@@ -1,4 +1,4 @@
-package com.mkleo.camera1;
+package com.mkleo.camera;
 
 class StatePreview extends CameraState {
 
@@ -19,6 +19,11 @@ class StatePreview extends CameraState {
             isPreview = true;
             mApi.startPreview(surface);
         }
+    }
+
+    @Override
+    public Object getSurface() {
+        return mApi.getSurface();
     }
 
     @Override

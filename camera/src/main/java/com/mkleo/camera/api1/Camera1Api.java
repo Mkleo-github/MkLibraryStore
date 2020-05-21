@@ -1,4 +1,4 @@
-package com.mkleo.camera1;
+package com.mkleo.camera.api1;
 
 import android.Manifest;
 import android.content.Context;
@@ -11,40 +11,27 @@ import android.support.v4.content.ContextCompat;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
-import com.mkleo.bases.sensor.DirectionSensor;
-import com.mkleo.camera1.utils.Camera1Util;
-import com.mkleo.camera1.utils.HandlerScheduler;
+import com.mkleo.camera.BaseCameraApi;
+import com.mkleo.camera.Config;
+import com.mkleo.camera.Params;
 import com.mkleo.helper.BitmapUtil;
-import com.mkleo.helper.MkLog;
 import com.mkleo.helper.SystemUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * 相机API 只提供能力
  */
-class Camera1Api implements ICamera {
-
-    /* 配置项 */
-    private Config mConfig;
-
-    private Context mContext;
+public class Camera1Api extends BaseCameraApi {
     /* Api */
     private Camera mCamera;
-    /* 线程调度器 */
-    private HandlerScheduler mScheduler;
     /* 显示承载 */
     private Object mSurface;
     /* 当前摄像头ID */
     private int mCameraId;
-    /* 设备旋转角度 */
-    private int mDeviceAngle;
-    /* 方向传感器 */
-    private DirectionSensor mDirectionSensor;
     /* 相机参数 */
     private Camera.Parameters mParameters;
     /* 录制器 */
@@ -58,13 +45,10 @@ class Camera1Api implements ICamera {
     /* 缩放级别 */
     private int mZoomLevel = 0;
 
-    Camera1Api(Context context, Config config) {
-        this.mContext = context;
-        this.mConfig = config;
+    public Camera1Api(Context context, Config config) {
+        super(context, config);
         this.mCameraId = (int) config.getCameraId();
-        prepare();
     }
-
 
     @Override
     public void setCallback(Callback callback) {
@@ -77,9 +61,9 @@ class Camera1Api implements ICamera {
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
+                if (!checkSurface(surface))
+                    throw new RuntimeException("Surface类型应为 SurfaceHolder或者SurfaceTexture");
                 try {
-                    if (!checkSurface(surface))
-                        throw new RuntimeException("Surface类型应为 SurfaceHolder或者SurfaceTexture");
                     mSurface = surface;
                     //开启相机,
                     open();
@@ -408,7 +392,8 @@ class Camera1Api implements ICamera {
         destroy();
     }
 
-    Object getSurface() {
+    @Override
+    public Object getSurface() {
         return mSurface;
     }
 
@@ -424,23 +409,6 @@ class Camera1Api implements ICamera {
         return surface instanceof SurfaceHolder
                 || surface instanceof SurfaceTexture;
     }
-
-    /**
-     * 准备工作
-     */
-    private void prepare() {
-        //初始化线程调度器
-        mScheduler = new HandlerScheduler(getClass().getSimpleName());
-        mScheduler.prepare();
-        //初始化方向传感器
-        mDirectionSensor = new DirectionSensor(mContext) {
-            @Override
-            public void onAngleChanged(int angle) {
-                mDeviceAngle = angle;
-            }
-        };
-    }
-
 
     /**
      * 打开相机
