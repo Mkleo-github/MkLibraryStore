@@ -1,5 +1,7 @@
 package com.mkleo.camera;
 
+import android.graphics.SurfaceTexture;
+
 class StateVideoRecord extends CameraState {
 
     /* 是否正在录制 */
@@ -17,13 +19,13 @@ class StateVideoRecord extends CameraState {
     }
 
     @Override
-    public void startPreview(Object surface) {
+    public void startPreview(SurfaceTexture surfaceTexture) {
         //视频录制不可调用
     }
 
     @Override
-    public Object getSurface() {
-        return mApi.getSurface();
+    public SurfaceTexture getSurfaceTexture() {
+        return mApi.getSurfaceTexture();
     }
 
     @Override

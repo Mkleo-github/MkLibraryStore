@@ -7,26 +7,20 @@ public class Config {
     private int version;
     /* 相机ID */
     private Object cameraId;
-    /* 预览宽度 */
-    private int previewWidth;
-    /* 预览高度 */
-    private int previewHeight;
+    //预览大小
+    private ICamera.Size previewSize;
+    //图片大小
+    private ICamera.Size pictureSize;
+    //视频大小
+    private ICamera.Size videoSize;
     /* 预览帧率 */
 //    private int previewFps;
     /* 对焦模式 */
     private int focusMode;
     /* 闪光灯模式 */
     private int flashMode;
-    /* 图片宽度 */
-    private int pictureWidth;
-    /* 图片高度 */
-    private int pictureHeight;
     /* 图片格式 */
     private int pictureFormat;
-    /* 视频宽度 */
-    private int videoWidth;
-    /* 视频高度 */
-    private int videoHeight;
     /* 视频帧率 */
     private int videoFps;
     /* 音频来源  */
@@ -44,16 +38,13 @@ public class Config {
 
     private Config(Builder builder) {
         this.cameraId = builder.cameraId;
-        this.previewWidth = builder.previewWidth;
-        this.previewHeight = builder.previewHeight;
+        this.previewSize = builder.previewSize;
+        this.pictureSize = builder.pictureSize;
+        this.videoSize = builder.videoSize;
 //        this.previewFps = builder.previewFps;
         this.focusMode = builder.focusMode;
         this.flashMode = builder.flashMode;
-        this.pictureWidth = builder.pictureWidth;
-        this.pictureHeight = builder.pictureHeight;
         this.pictureFormat = builder.pictureFormat;
-        this.videoWidth = builder.videoWidth;
-        this.videoHeight = builder.videoHeight;
         this.videoFps = builder.videoFps;
         this.audioSource = builder.audioSource;
         this.videoSource = builder.videoSource;
@@ -72,15 +63,11 @@ public class Config {
         return cameraId;
     }
 
-    public int getPreviewWidth() {
-        return previewWidth;
+    public ICamera.Size getPreviewSize() {
+        return previewSize;
     }
 
-    public int getPreviewHeight() {
-        return previewHeight;
-    }
-
-//    public int getPreviewFps() {
+    //    public int getPreviewFps() {
 //        return previewFps;
 //    }
 
@@ -92,24 +79,16 @@ public class Config {
         return flashMode;
     }
 
-    public int getPictureWidth() {
-        return pictureWidth;
+    public ICamera.Size getPictureSize() {
+        return pictureSize;
     }
 
-    public int getPictureHeight() {
-        return pictureHeight;
+    public ICamera.Size getVideoSize() {
+        return videoSize;
     }
 
     public int getPictureFormat() {
         return pictureFormat;
-    }
-
-    public int getVideoWidth() {
-        return videoWidth;
-    }
-
-    public int getVideoHeight() {
-        return videoHeight;
     }
 
     public int getVideoFps() {
@@ -140,28 +119,41 @@ public class Config {
         return videoBitRate;
     }
 
+    /**
+     * 设置支持的像素大小
+     *
+     * @param previewSize
+     * @param pictureSize
+     * @param videoSize
+     */
+    void setSupportSizes(ICamera.Size previewSize,
+                         ICamera.Size pictureSize,
+                         ICamera.Size videoSize) {
+        this.previewSize = previewSize;
+        this.pictureSize = pictureSize;
+        this.videoSize  = videoSize;
+    }
+
     public static class Builder {
 
         //默认使用Camera1
         private int version = Params.Version.CAMERA_1;
         private Object cameraId = 0;
-        private int previewWidth = 720;
-        private int previewHeight = 1280;
+        //预览大小
+        private ICamera.Size previewSize = new ICamera.Size(720, 1280);
+        private ICamera.Size pictureSize = new ICamera.Size(720, 1280);
+        private ICamera.Size videoSize = new ICamera.Size(720, 1280);
         //        private int previewFps = 15;
         private int focusMode = Params.FocusMode.AUTO;
         private int flashMode = Params.FlashMode.OFF;
-        private int pictureWidth = previewWidth;
-        private int pictureHeight = previewHeight;
         private int pictureFormat = Params.PictureFormat.JPEG;
-        private int videoWidth = previewWidth;
-        private int videoHeight = previewHeight;
         private int videoFps = 10;
         private int audioSource = Params.AudioSource.MIC;
         private int videoSource = Params.VideoSource.CAMERA;
         private int outputFormat = Params.OutputFormat.MP4;
         private int audioEncode = Params.AudioEncode.ACC;
         private int videoEncode = Params.VideoEncode.H264;
-        private int videoBitRate = videoWidth * videoHeight;
+        private int videoBitRate = 720 * 1280;
 
         public Builder setVersion(@Params.Version int version) {
             if (version == Params.Version.CAMERA_2
@@ -208,28 +200,24 @@ public class Config {
             return this;
         }
 
-        public Builder setPictureHeight(int pictureHeight) {
-            this.pictureHeight = pictureHeight;
+        public Builder setPictureSize(ICamera.Size pictureSize) {
+            this.pictureSize = pictureSize;
             return this;
         }
 
-        public Builder setPictureWidth(int pictureWidth) {
-            this.pictureWidth = pictureWidth;
-            return this;
-        }
-
-//        public Builder setPreviewFps(int previewFps) {
+        //        public Builder setPreviewFps(int previewFps) {
 //            this.previewFps = previewFps;
 //            return this;
 //        }
 
-        public Builder setPreviewHeight(int previewHeight) {
-            this.previewHeight = previewHeight;
+
+        public Builder setPreviewSize(ICamera.Size previewSize) {
+            this.previewSize = previewSize;
             return this;
         }
 
-        public Builder setPreviewWidth(int previewWidth) {
-            this.previewWidth = previewWidth;
+        public Builder setVideoSize(ICamera.Size videoSize) {
+            this.videoSize = videoSize;
             return this;
         }
 
@@ -248,18 +236,8 @@ public class Config {
             return this;
         }
 
-        public Builder setVideoHeight(int videoHeight) {
-            this.videoHeight = videoHeight;
-            return this;
-        }
-
         public Builder setVideoSource(@Params.VideoSource int videoSource) {
             this.videoSource = videoSource;
-            return this;
-        }
-
-        public Builder setVideoWidth(int videoWidth) {
-            this.videoWidth = videoWidth;
             return this;
         }
 

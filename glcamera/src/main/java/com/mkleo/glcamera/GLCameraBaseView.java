@@ -7,7 +7,8 @@ import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.mkleo.camera.Camera;
+import com.mkleo.camera.CameraCreator;
+import com.mkleo.camera.MkCamera;
 import com.mkleo.camera.Config;
 import com.mkleo.camera.ICamera;
 import com.mkleo.camera.Params;
@@ -26,7 +27,7 @@ import java.util.List;
 public abstract class GLCameraBaseView extends GLSurfaceView {
 
     /* 相机API */
-    private Camera mCamera1;
+    private MkCamera mCamera1;
     /* 用于显示的Render */
     private GLPreviewRender mGLPreviewRender;
     /* GL的离屏线程 */
@@ -75,12 +76,10 @@ public abstract class GLCameraBaseView extends GLSurfaceView {
         Config config = new Config.Builder()
                 .setFocusMode(Params.FocusMode.VIDEO)
                 .setFlashMode(Params.FlashMode.OFF)
-                .setPreviewWidth(mWidth)
-                .setPreviewHeight(mHeight)
-                .setPictureWidth(mWidth)
-                .setPictureHeight(mHeight)
+                .setPreviewSize(new ICamera.Size(mWidth, mHeight))
+                .setPictureSize(new ICamera.Size(mWidth, mHeight))
                 .build();
-        mCamera1 = new Camera(getContext(), config);
+        mCamera1 = CameraCreator.create(getContext(), config);
         mCamera1.setCallback(new ICamera.Callback() {
             @Override
             public void onStartPreview(ICamera.Size previewSize) {
@@ -194,7 +193,6 @@ public abstract class GLCameraBaseView extends GLSurfaceView {
             public void onStopRecord(String path) {
                 if (null != mOnGLRecordCallback)
                     mOnGLRecordCallback.onStopRecord(path);
-                isRecording = true;
             }
         });
         return true;
@@ -204,8 +202,10 @@ public abstract class GLCameraBaseView extends GLSurfaceView {
      * 停止录制
      */
     public void stopRecord() {
-        if (isPrepare)
+        if (isPrepare && isRecording) {
             mGLVideoRecorder.stopRecord();
+            isRecording = false;
+        }
     }
 
     /**
@@ -223,7 +223,7 @@ public abstract class GLCameraBaseView extends GLSurfaceView {
         int rotation = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
         int previewAngle = getPreviewAngle(
                 getWindowAngle(rotation),
-                infos.getSetupAngle(),
+                infos.getSensorOrientation(),
                 infos.getFace()
         );
         mGLOesRender.setAngle(previewAngle);

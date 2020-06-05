@@ -7,14 +7,20 @@ import android.support.annotation.NonNull;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import com.mkleo.camera.ICamera;
 import com.mkleo.camera.Params;
+import com.mkleo.camera.helper.CameraHelper;
 import com.mkleo.helper.MkLog;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class Camera1Util {
+public final class Camera1Util {
+
+    private Camera1Util() {
+        throw new RuntimeException("[请勿实例化]");
+    }
 
     /**
      * 检测是否支持相机
@@ -49,58 +55,6 @@ public class Camera1Util {
     }
 
 
-    /**
-     * 通过旋转角度计算设备方向
-     *
-     * @param angle 通过方向传感器获得的精确角度
-     * @return
-     */
-    public static int getDeviceRotation(int angle) {
-        if (angle >= 0 && angle < 45
-                || angle >= 315 && angle <= 360) {
-            //竖着拍的
-            return Params.Angle.ANGLE_0;
-        } else if (angle >= 45 && angle < 135) {
-            //横着拍的(屏幕右转)
-            return Params.Angle.ANGLE_270;
-        } else if (angle >= 135 && angle < 225) {
-            //倒着拍摄
-            return Params.Angle.ANGLE_180;
-        } else if (angle >= 225 && angle < 315) {
-            //横着拍的(屏幕左转)
-            return Params.Angle.ANGLE_90;
-        } else {
-            return Params.Angle.ANGLE_0;
-        }
-    }
-
-    /**
-     * 获取当前window的角度
-     *
-     * @param context
-     * @return
-     */
-    public static int getWindowRotation(@NonNull Context context) {
-        WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-        int windowRotation = windowManager.getDefaultDisplay().getRotation();
-        int degrees = Params.Angle.ANGLE_0;
-        switch (windowRotation) {
-            case Surface.ROTATION_0:
-                degrees = Params.Angle.ANGLE_0;
-                break;
-            case Surface.ROTATION_90:
-                degrees = Params.Angle.ANGLE_90;
-                break;
-            case Surface.ROTATION_180:
-                degrees = Params.Angle.ANGLE_180;
-                break;
-            case Surface.ROTATION_270:
-                degrees = Params.Angle.ANGLE_270;
-                break;
-        }
-        return degrees;
-    }
-
 
     /**
      * 转换为区域
@@ -134,7 +88,7 @@ public class Camera1Util {
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(cameraId, info);
         //获取当前屏幕的旋转角度
-        int windowAngle = getWindowRotation(context);
+        int windowAngle =CameraHelper.getWindowRotation(context);
         //获取设备的装配角度
         int setupAngle = info.orientation;
 
@@ -166,7 +120,7 @@ public class Camera1Util {
         //获取设备的装配角度
         int setupAngle = info.orientation;
         //获取当前设备角度
-        int deviceRotation = getDeviceRotation(angle);
+        int deviceRotation = CameraHelper.getDeviceRotation(angle);
         int pictureAngle = 0;
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
             pictureAngle = (setupAngle - deviceRotation + 360) % 360;
@@ -193,66 +147,6 @@ public class Camera1Util {
         }
     }
 
-
-    private static final int FRONT = -1;
-    private static final int BACK = 1;
-
-    /**
-     * 排序Size
-     *
-     * @param isAscending 是否是升序
-     * @param sizes
-     * @return
-     */
-    public static List<Camera.Size> sortSize(final boolean isAscending, List<Camera.Size> sizes) {
-
-        Collections.sort(sizes, new Comparator<Camera.Size>() {
-            @Override
-            public int compare(Camera.Size size1, Camera.Size size2) {
-                if (size1.height > size2.height) {
-                    //如果是升序就放在后面
-                    return isAscending ? BACK : FRONT;
-                } else if (size1.height == size2.height) {
-                    //比较宽度
-                    if (size1.width > size2.width) {
-                        return isAscending ? BACK : FRONT;
-                    } else {
-                        return isAscending ? FRONT : BACK;
-                    }
-                } else {
-                    return isAscending ? FRONT : BACK;
-                }
-            }
-        });
-
-        return sizes;
-    }
-
-
-    /**
-     * 获取最接近的size
-     *
-     * @param sizes
-     * @param width
-     * @param height
-     * @return
-     */
-    public static Camera.Size getNearSize(List<Camera.Size> sizes, int width, int height) {
-        //将Size降序排列
-        sortSize(false, sizes);
-        Camera.Size nearSize = null;
-        for (Camera.Size size : sizes) {
-            if (size.height <= width && size.width <= height) {
-                nearSize = size;
-                break;
-            }
-        }
-        if (null == nearSize) {
-            //获取最小的size
-            nearSize = sizes.get(sizes.size() - 1);
-        }
-        return nearSize;
-    }
 
     /**
      * 相机装备是否是竖向
@@ -323,15 +217,8 @@ public class Camera1Util {
         }
     }
 
-    public static void logSizes(List<Camera.Size> sizes) {
-        log("[logSize]");
-        for (Camera.Size size : sizes) {
-            log("[w:" + size.width + "] [h:" + size.height + "]");
-        }
-    }
 
-
-    public static void log(String log) {
+    static void log(String log) {
         MkLog.print("[Camera1]:" + log);
     }
 

@@ -1,11 +1,18 @@
 package com.mkleo.camera;
 
+import android.graphics.SurfaceTexture;
 import android.support.annotation.NonNull;
 
 /**
  * 相机的抽象
  */
 public interface ICamera {
+
+    interface OnResultCallback<T> {
+        void onSuccess(T result);
+
+        void onError(String msg);
+    }
 
     interface Callback {
         /**
@@ -57,16 +64,16 @@ public interface ICamera {
     /**
      * 开始预览
      *
-     * @param surface (SurfaceHolder/SurfaceTexture)
+     * @param surfaceTexture (SurfaceTexture)
      */
-    void startPreview(Object surface);
+    void startPreview(SurfaceTexture surfaceTexture);
 
     /**
      * 获取当前纹理
      *
      * @return
      */
-    Object getSurface();
+    SurfaceTexture getSurfaceTexture();
 
     /**
      * 停止预览
@@ -161,22 +168,25 @@ public interface ICamera {
 
     class Infos {
 
+        //相机ID(Object是兼容作用)
         private final Object cameraId;
+        //相机朝向
         private final int face;
-        private final int setupAngle;
+        //图形传感器装配角度
+        private final int sensorOrientation;
 
-        public Infos(Object cameraId, @Params.Facing int face, int setupAngle) {
+        public Infos(Object cameraId, @Params.Facing int face, int sensorOrientation) {
             this.cameraId = cameraId;
             this.face = face;
-            this.setupAngle = setupAngle;
+            this.sensorOrientation = sensorOrientation;
         }
 
         public int getFace() {
             return face;
         }
 
-        public int getSetupAngle() {
-            return setupAngle;
+        public int getSensorOrientation() {
+            return sensorOrientation;
         }
 
         public Object getCameraId() {
@@ -184,12 +194,17 @@ public interface ICamera {
         }
     }
 
+    /**
+     * 为了兼容Camera1和Camera2
+     */
     class Size {
 
         private final int width;
         private final int height;
 
         public Size(int width, int height) {
+            if (width < 0 || height < 0)
+                throw new RuntimeException("[非法的Size参数] " + toString());
             this.width = width;
             this.height = height;
         }

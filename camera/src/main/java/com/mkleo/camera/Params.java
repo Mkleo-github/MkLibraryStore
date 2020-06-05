@@ -11,11 +11,13 @@ public @interface Params {
     /**
      * 版本
      */
-    @IntDef({Version.CAMERA_1, Version.CAMERA_2})
+    @IntDef({Version.CAMERA_1,
+//            Version.CAMERA_2
+    })
     @Retention(RetentionPolicy.SOURCE)
     @interface Version {
         int CAMERA_1 = 1;
-        int CAMERA_2 = 2;
+//        int CAMERA_2 = 2;
     }
 
     /**

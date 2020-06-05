@@ -1,13 +1,15 @@
 package com.mkleo.camera;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
+import android.os.Build;
 
 import com.mkleo.camera.api1.Camera1Api;
 import com.mkleo.camera.api2.Camera2Api;
 
 import java.io.File;
 
-public class Camera implements ICamera {
+public class MkCamera implements ICamera {
 
     private BaseCameraApi mApi;
     private CameraState mState;
@@ -15,13 +17,17 @@ public class Camera implements ICamera {
     private CameraState mTakePicture;
     private CameraState mVideoRecord;
 
-    public Camera(Context context, Config config) {
+    MkCamera(Context context, Config config) {
         switch (config.getVersion()) {
             case Params.Version.CAMERA_1:
                 mApi = new Camera1Api(context.getApplicationContext(), config);
                 break;
             case Params.Version.CAMERA_2:
-                mApi = new Camera2Api(context.getApplicationContext(), config);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mApi = new Camera2Api(context.getApplicationContext(), config);
+                } else {
+                    throw new RuntimeException("[安卓版本过低]:" + Build.VERSION.SDK_INT);
+                }
                 break;
             default:
                 throw new RuntimeException("[不支持的Api版本]:" + config.getVersion());
@@ -35,13 +41,13 @@ public class Camera implements ICamera {
     }
 
     @Override
-    public void startPreview(Object surface) {
-        mState.startPreview(surface);
+    public void startPreview(SurfaceTexture surfaceTexture) {
+        mState.startPreview(surfaceTexture);
     }
 
     @Override
-    public Object getSurface() {
-        return mState.getSurface();
+    public SurfaceTexture getSurfaceTexture() {
+        return mState.getSurfaceTexture();
     }
 
     @Override
@@ -148,7 +154,7 @@ public class Camera implements ICamera {
      */
     private void repreview() {
         mPreview.stopPreview();
-        mPreview.startPreview(mApi.getSurface());
+        mPreview.startPreview(mApi.getSurfaceTexture());
     }
 
     /**

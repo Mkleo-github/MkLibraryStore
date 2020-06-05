@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 
 import com.mkleo.camera.BaseCameraApi;
 import com.mkleo.camera.Config;
+import com.mkleo.camera.ICamera;
 import com.mkleo.camera.Params;
 import com.mkleo.helper.BitmapUtil;
 import com.mkleo.helper.SystemUtil;
@@ -27,9 +28,9 @@ import java.util.List;
  */
 public class Camera1Api extends BaseCameraApi {
     /* Api */
-    private Camera mCamera;
+    private Camera mCameraDevice;
     /* 显示承载 */
-    private Object mSurface;
+    private SurfaceTexture mSurface;
     /* 当前摄像头ID */
     private int mCameraId;
     /* 相机参数 */
@@ -56,24 +57,18 @@ public class Camera1Api extends BaseCameraApi {
     }
 
     @Override
-    public void startPreview(final Object surface) {
+    public void startPreview(final SurfaceTexture surfaceTexture) {
         if (null == mScheduler) return;
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
-                if (!checkSurface(surface))
-                    throw new RuntimeException("Surface类型应为 SurfaceHolder或者SurfaceTexture");
                 try {
-                    mSurface = surface;
+                    mSurface = surfaceTexture;
                     //开启相机,
                     open();
                     //开始预览
-                    if (mSurface instanceof SurfaceHolder) {
-                        mCamera.setPreviewDisplay((SurfaceHolder) mSurface);
-                    } else {
-                        mCamera.setPreviewTexture((SurfaceTexture) mSurface);
-                    }
-                    mCamera.startPreview();
+                    mCameraDevice.setPreviewTexture(mSurface);
+                    mCameraDevice.startPreview();
                     log("开始预览");
                     if (null != mCallback) {
                         Camera.Size previewSize = mParameters.getPreviewSize();
@@ -113,8 +108,8 @@ public class Camera1Api extends BaseCameraApi {
             public void run() {
                 if (scaleX < 0 || scaleY < 0) {
                     //采取自动对焦
-                    mCamera.cancelAutoFocus();
-                    mCamera.autoFocus(new Camera.AutoFocusCallback() {
+                    mCameraDevice.cancelAutoFocus();
+                    mCameraDevice.autoFocus(new Camera.AutoFocusCallback() {
                         @Override
                         public void onAutoFocus(boolean success, Camera camera) {
                             log("对焦完成 [" + success + "]");
@@ -141,16 +136,16 @@ public class Camera1Api extends BaseCameraApi {
 
                     try {
                         // 每次对焦前，需要先取消对焦
-                        mCamera.cancelAutoFocus();
+                        mCameraDevice.cancelAutoFocus();
                         // 设置相机参数
-                        mCamera.setParameters(mParameters);
+                        mCameraDevice.setParameters(mParameters);
                         // 开启对焦
-                        mCamera.autoFocus(new Camera.AutoFocusCallback() {
+                        mCameraDevice.autoFocus(new Camera.AutoFocusCallback() {
                             @Override
                             public void onAutoFocus(boolean success, Camera camera) {
                                 //恢复对焦模式
                                 mParameters.setFocusMode(setFocusMode);
-                                mCamera.setParameters(mParameters);
+                                mCameraDevice.setParameters(mParameters);
                                 log("对焦完成 [" + success + "]");
                             }
                         });
@@ -180,7 +175,7 @@ public class Camera1Api extends BaseCameraApi {
         if (isUnavailable()) return false;
         if (!isSupportFlashMode(flashMode)) return false;
         mParameters.setFlashMode(Camera1Util.getFlashMode(flashMode));
-        mCamera.setParameters(mParameters);
+        mCameraDevice.setParameters(mParameters);
         return true;
     }
 
@@ -191,12 +186,12 @@ public class Camera1Api extends BaseCameraApi {
         mScheduler.ioThread(new Runnable() {
             @Override
             public void run() {
-                mCamera.cancelAutoFocus();
-                mCamera.autoFocus(new Camera.AutoFocusCallback() {
+                mCameraDevice.cancelAutoFocus();
+                mCameraDevice.autoFocus(new Camera.AutoFocusCallback() {
                     @Override
                     public void onAutoFocus(boolean success, Camera camera) {
-                        mCamera.cancelAutoFocus();
-                        mCamera.takePicture(null, null, new Camera.PictureCallback() {
+                        mCameraDevice.cancelAutoFocus();
+                        mCameraDevice.takePicture(null, null, new Camera.PictureCallback() {
                             @Override
                             public void onPictureTaken(byte[] data, Camera camera) {
                                 //生成图片
@@ -241,12 +236,12 @@ public class Camera1Api extends BaseCameraApi {
                 mVideoPath = path;
                 mVideoCallback = callback;
 
-                mCamera.unlock();
+                mCameraDevice.unlock();
                 //实例化
                 mMediaRecorder = new MediaRecorder();
                 //改变保存后的视频文件播放时是否横屏(不加这句，视频文件播放的时候角度是反的)
                 mMediaRecorder.setOrientationHint(Camera1Util.getRotationAngle(mDeviceAngle, mCameraId));
-                mMediaRecorder.setCamera(mCamera);
+                mMediaRecorder.setCamera(mCameraDevice);
                 //设置从麦克风采集声音
                 mMediaRecorder.setAudioSource(mConfig.getAudioSource());
                 //设置从摄像头采集图像
@@ -261,14 +256,9 @@ public class Camera1Api extends BaseCameraApi {
                     //设置视频编码的比特率
                     mMediaRecorder.setVideoEncodingBitRate(mConfig.getVideoBitRate());
                 }
-                if (mConfig.getVideoWidth() > 0 && mConfig.getVideoHeight() > 0) {
-                    Camera.Size videoSize = Camera1Util.getNearSize(
-                            mParameters.getSupportedVideoSizes(),
-                            mConfig.getVideoWidth(), mConfig.getVideoHeight()
-                    );
-                    //设置视频大小
-                    mMediaRecorder.setVideoSize(videoSize.width, videoSize.height);
-                }
+                Size supportVideoSize = mConfig.getVideoSize();
+                //设置视频大小
+                mMediaRecorder.setVideoSize(supportVideoSize.getWidth(), supportVideoSize.getHeight());
                 if (mConfig.getVideoFps() > 0) {
                     //设置帧率
                     mMediaRecorder.setVideoFrameRate(mConfig.getVideoFps());
@@ -355,7 +345,7 @@ public class Camera1Api extends BaseCameraApi {
                     if (mZoomLevel < 0) mZoomLevel = 0;
                 }
                 mParameters.setZoom(mZoomLevel);
-                mCamera.setParameters(mParameters);
+                mCameraDevice.setParameters(mParameters);
                 log("缩放 [" + mZoomLevel + "]");
             }
         });
@@ -393,22 +383,10 @@ public class Camera1Api extends BaseCameraApi {
     }
 
     @Override
-    public Object getSurface() {
+    public SurfaceTexture getSurfaceTexture() {
         return mSurface;
     }
 
-
-    /**
-     * 检测surface
-     *
-     * @param surface
-     * @return
-     */
-    private boolean checkSurface(Object surface) {
-        if (null == surface) return false;
-        return surface instanceof SurfaceHolder
-                || surface instanceof SurfaceTexture;
-    }
 
     /**
      * 打开相机
@@ -416,25 +394,20 @@ public class Camera1Api extends BaseCameraApi {
     private void open() {
         //检测是否支持相机设备
         if (!Camera1Util.isSupportCamera())
-            throw new RuntimeException("该设备不支持相机!");
+            throw new RuntimeException("[该设备没有相机模块]");
         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED)
-            throw new RuntimeException("请赋予相机权限!");
+            throw new RuntimeException("[请赋予相机权限]");
         //打开摄像头
-        mCamera = Camera.open(mCameraId);
+        mCameraDevice = Camera.open(mCameraId);
         int previewAngle = Camera1Util.getPreviewAngle(mContext, mCameraId);
-        log("设置预览角度 [" + previewAngle + "]");
-        mCamera.setDisplayOrientation(previewAngle);
-        mParameters = mCamera.getParameters();
+        log("[设置预览角度] [" + previewAngle + "]");
+        mCameraDevice.setDisplayOrientation(previewAngle);
+        mParameters = mCameraDevice.getParameters();
         //设置预览大小
-        if (mConfig.getPreviewWidth() > 0 && mConfig.getPreviewHeight() > 0) {
-            Camera.Size previewSize = Camera1Util.getNearSize(
-                    mParameters.getSupportedPreviewSizes(),
-                    mConfig.getPreviewWidth(), mConfig.getPreviewHeight()
-            );
-            log("配置的预览大小 [w:" + mConfig.getPreviewWidth() + "] [h:" + mConfig.getPreviewHeight() + "]");
-            log("设置的预览大小 [w:" + previewSize.width + "] [h:" + previewSize.height + "]");
-            mParameters.setPreviewSize(previewSize.width, previewSize.height);
-        }
+        ICamera.Size supportPreviewSize = mConfig.getPreviewSize();
+        log("[配置的预览大小]:" + mConfig.getPreviewSize().toString());
+        log("[设置的预览大小]:" + supportPreviewSize.toString());
+        mParameters.setPreviewSize(supportPreviewSize.getWidth(), supportPreviewSize.getHeight());
         //只有第一次打开才会设置
         //设置对焦模式
         if (isSupportFocusMode(mConfig.getFocusMode())) {
@@ -450,16 +423,12 @@ public class Camera1Api extends BaseCameraApi {
         }
         //设置图片格式
         mParameters.setPictureFormat(mConfig.getPictureFormat());
-        if (mConfig.getPictureWidth() > 0 && mConfig.getPreviewHeight() > 0) {
-            //设置输出图片大小
-            Camera.Size pictureSize = Camera1Util.getNearSize(
-                    mParameters.getSupportedPictureSizes(),
-                    mConfig.getPictureWidth(), mConfig.getPictureHeight()
-            );
-            mParameters.setPictureSize(pictureSize.width, pictureSize.height);
-        }
+        //设置输出图片大小
+        ICamera.Size supportPictureSize = mConfig.getPictureSize();
+
+        mParameters.setPictureSize(supportPictureSize.getWidth(), supportPictureSize.getHeight());
         //设置参数
-        mCamera.setParameters(mParameters);
+        mCameraDevice.setParameters(mParameters);
     }
 
     /**
@@ -467,12 +436,12 @@ public class Camera1Api extends BaseCameraApi {
      */
     private void close() {
         try {
-            if (null != mCamera) {
+            if (null != mCameraDevice) {
                 log("关闭相机");
                 mZoomLevel = 0;
-                mCamera.stopPreview();
-                mCamera.setPreviewDisplay(null);
-                mCamera.release();
+                mCameraDevice.stopPreview();
+                mCameraDevice.setPreviewDisplay(null);
+                mCameraDevice.release();
             }
         } catch (Exception ignored) {
         }
@@ -484,7 +453,7 @@ public class Camera1Api extends BaseCameraApi {
      * @return
      */
     private boolean isUnavailable() {
-        return null == mCamera || null == mScheduler;
+        return null == mCameraDevice || null == mScheduler;
     }
 
     /**

@@ -14,12 +14,12 @@ import com.mkleo.helper.MkLog;
  * by: Mk.leo
  * date: 2019/5/14
  */
-public class GLVideoRecord {
+public class GLVideoRecorder {
 
-    public interface RecordListener {
-        void onStart();
+    public interface Callback {
+        void onStartRecord();
 
-        void onCompleted(String path);
+        void onStopRecord(String path);
     }
 
     public static class Config {
@@ -102,7 +102,7 @@ public class GLVideoRecord {
     public synchronized void startRecord(final Config config,
                                          final EGLContext sharedContext,
                                          GLRender glRender,
-                                         final RecordListener listener) {
+                                         final Callback callback) {
         if (null != mGLThread) return;
         mGLThread = new GLThread();
         mGLThread.start();
@@ -128,15 +128,15 @@ public class GLVideoRecord {
                 //启动GL线程
                 mGLThread.create(mMediaEncoder.getVideoSurface(), sharedContext);
                 mGLThread.change(config.width, config.height);
-                if (null != listener)
-                    listener.onStart();
+                if (null != callback)
+                    callback.onStartRecord();
             }
 
             @Override
             public void onStop(String path) {
                 MkLog.print("停止编码:" + path);
-                if (null != listener)
-                    listener.onCompleted(path);
+                if (null != callback)
+                    callback.onStopRecord(path);
             }
         });
         //启动录音线程

@@ -1,5 +1,7 @@
 package com.mkleo.camera;
 
+import android.graphics.SurfaceTexture;
+
 class StateTakePicture extends CameraState {
 
 
@@ -15,13 +17,13 @@ class StateTakePicture extends CameraState {
     }
 
     @Override
-    public void startPreview(Object surface) {
+    public void startPreview(SurfaceTexture surfaceTexture) {
         //拍照状态无法调用
     }
 
     @Override
-    public Object getSurface() {
-        return mApi.getSurface();
+    public SurfaceTexture getSurfaceTexture() {
+        return mApi.getSurfaceTexture();
     }
 
     @Override

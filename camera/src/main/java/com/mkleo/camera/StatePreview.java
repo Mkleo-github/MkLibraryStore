@@ -1,5 +1,7 @@
 package com.mkleo.camera;
 
+import android.graphics.SurfaceTexture;
+
 class StatePreview extends CameraState {
 
     private boolean isPreview = false;
@@ -14,16 +16,16 @@ class StatePreview extends CameraState {
     }
 
     @Override
-    public synchronized void startPreview(Object surface) {
+    public synchronized void startPreview(SurfaceTexture surfaceTexture) {
         if (!isPreview) {
             isPreview = true;
-            mApi.startPreview(surface);
+            mApi.startPreview(surfaceTexture);
         }
     }
 
     @Override
-    public Object getSurface() {
-        return mApi.getSurface();
+    public SurfaceTexture getSurfaceTexture() {
+        return mApi.getSurfaceTexture();
     }
 
     @Override
