@@ -29,6 +29,13 @@ public class HandlerScheduler {
         mUiHanlder = new Handler(Looper.getMainLooper());
     }
 
+    public Handler getIoHandler(){
+        return mIoHandler;
+    }
+
+    public Handler getUiHandler(){
+        return mUiHanlder;
+    }
 
     /**
      * ui线程

@@ -2,6 +2,7 @@ package com.mkleo.camera;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.widget.Toast;
 
 import com.mkleo.camera.helper.CameraHelper;
 
@@ -22,6 +23,10 @@ public class CameraCreator {
      * @return
      */
     public static MkCamera create(Context context, Config config) {
+        if (!CameraHelper.isCameraAvailable(context)) {
+            Toast.makeText(context, "当前相机无法使用,请检查权限和相机状态", Toast.LENGTH_SHORT).show();
+            return null;
+        }
         Camera.Parameters parameters = CameraHelper.getParameters((Integer) config.getCameraId());
         ICamera.Size previewSize = CameraHelper.getSupportSize(config.getPreviewSize(),
                 CameraHelper.formatSizes(parameters.getSupportedPreviewSizes()));

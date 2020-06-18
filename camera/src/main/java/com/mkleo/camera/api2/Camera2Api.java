@@ -1,6 +1,7 @@
 package com.mkleo.camera.api2;
 
 import android.content.Context;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -17,6 +18,7 @@ import android.view.Surface;
 import com.mkleo.camera.BaseCameraApi;
 import com.mkleo.camera.Config;
 
+import java.io.File;
 import java.util.Arrays;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -103,6 +105,7 @@ public class Camera2Api extends BaseCameraApi {
 
     private Object mCameraId;
     private Infos mCameraInfos;
+    private File mPictureFile;
     private CameraDevice mCameraDevice;
     //处理静态图像捕获。
     private ImageReader mImageReader;
@@ -129,6 +132,16 @@ public class Camera2Api extends BaseCameraApi {
         }
     };
 
+    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
+            = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            if (null != mPictureFile) {
+                mScheduler.ioThread(Camera2Util.getPictureSaver(reader.acquireLatestImage(), mPictureFile));
+            }
+        }
+    };
+
     /**
      * 装载相机
      */
@@ -138,8 +151,12 @@ public class Camera2Api extends BaseCameraApi {
         CameraCharacteristics characteristics = manager.getCameraCharacteristics((String) mCameraId);
         //创建相机信息
         mCameraInfos = new Infos(mCameraId, Camera2Util.getFacing(characteristics), Camera2Util.getSensorOrientation(characteristics));
-
-
+        Size pictureSize = mConfig.getPictureSize();
+        //创建拍照捕捉大小
+        mImageReader = ImageReader.newInstance(pictureSize.getWidth(), pictureSize.getHeight(),
+                ImageFormat.JPEG, /*maxImages*/2);
+        mImageReader.setOnImageAvailableListener(
+                mOnImageAvailableListener, mScheduler.getIoHandler());
     }
 
 

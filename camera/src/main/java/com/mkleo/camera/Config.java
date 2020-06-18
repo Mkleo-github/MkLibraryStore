@@ -131,7 +131,7 @@ public class Config {
                          ICamera.Size videoSize) {
         this.previewSize = previewSize;
         this.pictureSize = pictureSize;
-        this.videoSize  = videoSize;
+        this.videoSize = videoSize;
     }
 
     public static class Builder {
@@ -155,14 +155,20 @@ public class Config {
         private int videoEncode = Params.VideoEncode.H264;
         private int videoBitRate = 720 * 1280;
 
-        public Builder setVersion(@Params.Version int version) {
-            if (version == Params.Version.CAMERA_2
-                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                //必须版本大于5.0
-                this.version = version;
-            }
-            return this;
-        }
+//        /**
+//         * 设置版本(暂不使用)
+//         *
+//         * @param version
+//         * @return
+//         */
+//        public Builder setVersion(@Params.Version int version) {
+//            if (version == Params.Version.CAMERA_2
+//                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                //必须版本大于5.0
+//                this.version = version;
+//            }
+//            return this;
+//        }
 
         public Builder setCameraId(int cameraId) {
             this.cameraId = cameraId;

@@ -3,12 +3,18 @@ package com.mkleo.camera.api2;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
+import android.media.Image;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 
 import com.mkleo.camera.Params;
 import com.mkleo.helper.MkLog;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public final class Camera2Util {
@@ -70,6 +76,40 @@ public final class Camera2Util {
         Integer orientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
         if (null == orientation) return -1;
         return orientation;
+    }
+
+    /**
+     * 获取图片保存runnable
+     *
+     * @param image
+     * @param file
+     * @return
+     */
+    public static Runnable getPictureSaver(final Image image, final File file) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                FileOutputStream output = null;
+                try {
+                    output = new FileOutputStream(file);
+                    output.write(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    image.close();
+                    if (null != output) {
+                        try {
+                            output.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
     }
 
 
